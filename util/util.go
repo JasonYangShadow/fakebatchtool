@@ -3,9 +3,10 @@ package util
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
-	"strings"
+	"time"
 )
 
 func ReadFile(path string) ([]string, error) {
@@ -28,26 +29,6 @@ func ReadFile(path string) ([]string, error) {
 	return data, nil
 }
 
-func ProcessShell(data []string, cwd string) ([]string, error) {
-	pdata := make([]string, len(data)+1)
-	if len(data) > 0 && strings.HasPrefix(data[0], "#!") {
-		copy(pdata, data[:1])
-		pdata[1] = "source ~/.bashrc"
-		copy(pdata[2:], data[1:])
-	}
-
-	for idx, line := range pdata {
-		if strings.HasPrefix(line, "$bin/canu") {
-			items := []string{}
-			items = append(items, fmt.Sprintf("%s/canu", cwd))
-			newline := fmt.Sprintf("\"%s\"", strings.TrimSpace(strings.TrimPrefix(line, "$bin/canu")))
-			items = append(items, newline)
-			pdata[idx] = strings.Join(items, " ")
-		}
-	}
-	return pdata, nil
-}
-
 func WriteToFile(path string, data []string) error {
 	ofile, _ := os.Create(path)
 	defer ofile.Close()
@@ -68,4 +49,20 @@ func Command(cmdStr string, arg ...string) error {
 		return err
 	}
 	return nil
+}
+
+func RandomString(n int) string {
+	rand.Seed(time.Now().UnixNano())
+	var letter = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letter[rand.Intn(len(letter))]
+	}
+	return string(b)
+}
+
+func CreateShellScript() string {
+	rand_str := RandomString(10)
+	rand_script := fmt.Sprintf("%s.sh", rand_str)
+	return rand_script
 }
